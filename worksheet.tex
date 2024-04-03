@@ -1,22 +1,194 @@
 \documentclass{dcbl/challenge}
 
-\setdoctitle{Der Titel meines Dokuments}
+\setdoctitle{Non-Trivial Types}
 \setdocauthor{Stephan Bökelmann}
 \setdocemail{sboekelmann@ep1.rub.de}
 \setdocinstitute{AG Physik der Hadronen und Kerne}
 
+\usepackage{listings}
+\usepackage{hyperref}
 
 \begin{document}
+Our task as programmers is it to encode status into memory and processes into transformations.
+We know how to write functions, that can transform our data in memory, but what if a representation of our status is more complicated than just a number?
+This is what we call \textit{non-trivial types}.
+These types are not just numbers. 
+There are several kinds, that we want to explore in this exercise.
+\begin{enumerate}
+    \item structs
+    \item pointers
+    \item arrays and
+    \item function-pointers (this will be on a different worksheet)
+\end{enumerate}
 
-Jedes Challenge-Blatt beginnt mit einer kurzen Einleitung, die einen Kontext für den jeweiligen Zettel setzt. 
-
-\section*{Aufgaben}
+\section*{Exercises}
 \begin{aufgabe}
-    Löse die Gleichung $x^2 - 5x + 6 = 0$.
+    Let's start with a struct. 
+    A struct is a collection of fields, addressable by a common identifier.
+    Say your program want's to handle the data of two different persons. 
+    How would you save the data in memory?
+    One way could be the following:
+    \begin{lstlisting}
+        int age_person_1 = 20;
+        int age_person_2 = 30;
+        int weight_person_1 = 70;
+        int weight_person_2 = 80;
+        int height_person_1 = 180;
+        int height_person_2 = 170;
+    \end{lstlisting}
+    But this is not very readable, and furthermore, it is not very easy, to pass a whole person as an argument to a function.
+    A better way to implement this are structs. 
+    First we need to define a struct so that the compiler knows what it should be dealing with:
+    \begin{lstlisting}
+        struct Person_t {
+            int age;
+            int weight;
+            int height;
+        };
+    \end{lstlisting}
+    We can now change our code to this:
+    \begin{lstlisting}
+        struct Person_t person_1 = {20, 70, 180};
+        struct Person_t person_2 = {30, 80, 170};
+    \end{lstlisting}
+    We use the \texttt{\_t} suffix to indicate that this is a user-defined type.
+    But there are even more things we can do to make it more readable. 
+    \begin{lstlisting}
+        typedef struct Person_t P_t;
+        P_t person_1 = {20, 70, 180};
+        P_t person_2 = {30, 80, 170};
+    \end{lstlisting}
+    This typedef syntax makes it easier to read the code, since we can neglect the \texttt{struct}-keyword in our code.
+    A typedef is also called an \textit{alias}.
+    But there is one more improvement that we can do to make our code more readable:
+    \begin{lstlisting}
+        typedef struct{
+            int age;
+            int weight;
+            int height;
+        } P_t;
+        P_t person_1 = {
+            .age = 20,
+            .weight = 70,
+            .height = 180
+        };
+        P_t person_2 = {
+            .age = 30,
+            .weight = 80,
+            .height = 170
+        };
+    \end{lstlisting}
+    Now this looks nice. 
+    We can access the fields with dot-notation.
+    \begin{lstlisting}
+        printf("%d", person_1.age); 
+    \end{lstlisting}
+    We can also pass a struct as an argument to a function.
+    \begin{lstlisting}
+        void print_person(P_t person) {
+            printf("%d %d %d", person.age, person.weight, person.height);
+        }
+    \end{lstlisting}
+    We can also return a struct from a function.
+    \begin{lstlisting}
+        P_t get_person() {
+            return person_1;
+        }
+    \end{lstlisting}
+    This makes handling data a lot easier, since we can keep data together in one place and pass it around by only referencing the struct, rather than each field separately.
+    Implement a struct, that encodes the information of a car!    
 \end{aufgabe}
 
-\begin{aufgabe}[Für Fortgeschrittene]
-    Beweise den Satz des Pythagoras.
+\begin{aufgabe}
+    Next topic we want to talk about is the pointer data type. 
+    A pointer is essentially a type that stores the memory address of another piece of data.
+    This might seem abstract at first, but pointers are a powerful feature of the C language, allowing for efficient and dynamic memory management.
+    Consider you want to modify the value of a variable inside a function:
+\begin{lstlisting}
+    void add_ten(int n) {
+        n += 10;
+    }
+\end{lstlisting}
+If you pass a variable to this function, the original variable will not be modified because C passes arguments by value. 
+Here's where pointers come into play. 
+By passing a pointer to the variable, you can directly modify the variable's value:
+\begin{lstlisting}
+    void add_ten(int *n) {
+        *n += 10;
+    }
+\end{lstlisting}
+In this version, \texttt{n} is a pointer to an integer, and \texttt{*n} accesses the value of the variable it points to, allowing us to modify the original variable.
+You have to understand, that pointer, is not a complete type in and of itself. 
+It only is in connection with the type of data it points to.
+This is why we call it a \textit{pointer to int} or \textit{pointer to float}, or whatever it is pointing to.
+
+To use this function, you would pass the address of a variable to it, like so:
+\begin{lstlisting}
+    int main() {
+        int age = 20;
+        add_ten(&age);
+        printf("%d", age); // Outputs: 30
+    }
+\end{lstlisting}
+The \texttt{\&} operator gets the address of \texttt{age}, and \texttt{add\_ten} modifies the value at that address. 
+The original \texttt{age} variable in \texttt{main} is now 30.
+
+Pointers are not limited to primitive data types. They can also point to structures, enabling the manipulation of complex data structures:
+\begin{lstlisting}
+    typedef struct {
+        int x;
+        int y;
+    } Point_t;
+
+    void move_point(Point *p, int dx, int dy) {
+        p->x += dx;
+        p->y += dy;
+    }
+\end{lstlisting}
+In this example, \texttt{p} is a pointer to a \texttt{Point} structure, and \texttt{p->x} is the syntax used to access the \texttt{x} field of the structure \texttt{p} points to. This function modifies the position of a point.
+
+Pointers are a fundamental aspect of C, enabling direct memory access and manipulation, which is critical for system programming, efficient data structures, and interfacing with hardware.
+
+Explore pointers further by creating a simple program that uses pointers to swap the values stored behind two identifiers.
+Make your function take two pointers as arguments.
+Take a look at the following example before proceeding: \href{https://godbolt.org/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGIAMxmpK4AMngMmAByPgBGmMQgZkEADqgKhE4MHt6%2BASlpGQJhEdEscQlJtpj2jgJCBEzEBNk%2BfoFVNZn1jQTFUbHxiUEKDU0tue0jPX2l5UMAlLaoXsTI7Bzm/uHI3lgm/m4j%2BKgAdAj72CYaAIKb27uY%2B4cE6DGonmcXV7c33%2BEEAGoWExwhB5iYAOxWG4A2EA/5wgEAN0aXAB%2BwAIgCuPtoddEQoECRAcjGmZ0f4sVwzLjvoiEXCUcR/BSqWZ/LSYXDaAJgIzGpJWdj2ZJOfjubyATyjKTiABWIXU/ySOVixEAfQs71osoAbIrcQCAPRGgEAdSYCDIAPQTD1AIYeGQCEBGnhIzpcKoPKYgKZEMV7JOKt1arh6GWMXosoAHIHlSc5bqITGxZ7YcliP8qBBzGYzfE/QJ0XK3Bp/By5RZJBpcVwWLK0YjYSB0WY5egS2WKyYqxoWL23Aw86RG%2BD/HjEZns7mktd0MRMAolMji4Py5Xq7WJ/XG82Aa3zHLkl2N72LP3B8PKm3dUyuOPJ3Dp4Ic3mC01VwxTz2q5JRTuDZMuS%2B6Hu2nbrr%2BF4DqW15BLKZiPumAIvgQb5zguS4rkia6lmef4ARYu7AaBbbHj%2Bm6XrBI63sBSFchmWavrO%2BaFl%2BFHniqdZAY0LKkUeEF4VBVFDjRTL%2BPR4qMTOebzouy6YOxkGblxgGynxiJgeRynniJcGjuYd68ZJU5MWhLEfkW346X%2BOJqUygr8e2tCCd2lEwaJN4OSZz5mehZhyVhik4dZQkqXZRE8cQjmaWRJ42dBV40YZ3lhtJzHvmxIUcX%2B26RbKCpOXKtAuTliXUV5jRyj56XmbJmEKUpYWcXlxFVUV8XNX2Hn6bRVU1ShfkWVluFuZxhFtcQ%2BpFa5%2BHlZ58FMrqA2of5gWNdlCX/tx9rNlpnVjd1SU3iljTLWlg0yUkllNYd1aqvZjQBkVVBlXpYlPStQ31fJ2GjXNqn5f6HVvT1yVmEZxAQl9V2sZ%2Bm1ddWEWTXGRW0K9CXvZVxAxjDGUYb9wX/VBkjI1FqOxUeB1zVj8GnTjknIYuBArN%2BeXfJCGLfBwiy0Jwcq8H4HBaKQqCcG41jWACCjLKsimbDwpAEJoPOLAA1iAcoAJwnGYKa6lwWta7qMa6v4SYqvonCSILKui5wvAKCAGhKyrixwLASCYKomDIF4RBkBQECNMACjKIY1RCESADuQuK2gLDJHQvqZOHES0FHqCx3bCdJ/QCTAFwGhBLndDxJErDrLwpf5wA8v7mfZ8LvDe771zEKHDvBD7yD1PgQu8PwggiGI7BSDIgiKCo6jN6QuhcPohjGJLlj6HgMRO5AiyoMktQME7HC8KgSLxFmWCb2CpDEF4gh4GwAAq2oX4sMsrGsehHOEaeRzHce8NHxAmDJE4DwXm/NbazzFhwbAPd/YkABKoU2ABaXUgpgDIGQNiDQusAQQAlpYawo5cCEHgQreYvBlbN3mOrEANYTgQjMFwfwMYNDliYag82corYcBtqQIWIsoGO2dq7KhYCOBmAgQIrulCtDUNICfYg6RnCSCAA%3D%3D%3D}{Pointer Example on Godbolt}
+
+\end{aufgabe}
+
+\begin{aufgabe}
+    Moving forward, let's explore the relationship between pointers and arrays in C. Both are closely related, as arrays in C are essentially a sequence of contiguous memory locations, and the name of an array acts as a pointer to its first element.
+    Consider you have an array of integers:
+\begin{lstlisting}
+    int numbers[3] = {10, 20, 30};
+\end{lstlisting}
+The name `numbers` points to the first element of the array, meaning `numbers` is equivalent to `\&numbers[0]`. You can verify this by comparing their addresses:
+\begin{lstlisting}
+    printf("Address of numbers: %p\n", (void *)numbers);
+    printf("Address of &numbers[0]: %p\n", (void *)&numbers[0]);
+\end{lstlisting}
+You'll notice that both addresses are the same. This illustrates how array names can be thought of as pointers.
+
+Accessing array elements using pointers is straightforward. You can access the first element of the array `numbers` by dereferencing the pointer:
+\begin{lstlisting}
+    printf("First element: %d\n", *numbers);
+\end{lstlisting}
+To access the second element, you can take advantage of pointer arithmetic. Instead of using a loop, let's increment the pointer by 1 (which actually adds the size of the type it points to, in this case, `int`):
+\begin{lstlisting}
+    printf("Second element: %d\n", *(numbers + 1));
+\end{lstlisting}
+Similarly, for the third element:
+\begin{lstlisting}
+    printf("Third element: %d\n", *(numbers + 2));
+\end{lstlisting}
+This method of accessing array elements highlights the duality between pointers and arrays in C. You directly use the array name as a pointer and apply arithmetic operations to navigate through the array.
+
+While pointers and arrays appear similar, it's crucial to understand their differences. An array name is a constant pointer to the first element and cannot be reassigned, whereas a pointer is a variable that can point to different memory locations during its lifetime. This distinction underlines the flexibility of pointers compared to array names.
+
+Experiment further by creating an array of your \texttt{Car\_t}. 
+Create an array, holding three cars. 
+Write a function, that takes a pointer to a particular member-value as an argument.
+Find out, how to pass the address of the member-value to the function.
+
 \end{aufgabe}
 
 \section*{Anmerkungen}
