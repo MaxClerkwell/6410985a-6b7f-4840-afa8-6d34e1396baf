@@ -148,7 +148,7 @@ Pointers are not limited to primitive data types. They can also point to structu
         int y;
     } Point_t;
 
-    void move_point(Point *p, int dx, int dy) {
+    void move_point(Point_t *p, int dx, int dy) {
         p -> x += dx;
         p -> y += dy;
     }
