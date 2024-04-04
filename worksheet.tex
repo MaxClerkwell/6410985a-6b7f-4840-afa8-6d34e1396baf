@@ -4,16 +4,18 @@
 \setdocauthor{Stephan Bökelmann}
 \setdocemail{sboekelmann@ep1.rub.de}
 \setdocinstitute{AG Physik der Hadronen und Kerne}
-
 \usepackage{listings}
+
+\lstset{language=C, basicstyle=\ttfamily}
 \usepackage{hyperref}
 
 \begin{document}
 Our task as programmers is it to encode status into memory and processes into transformations.
-We know how to write functions, that can transform our data in memory, but what if a representation of our status is more complicated than just a number?
-This is what we call \textit{non-trivial types}.
-These types are not just numbers. 
-There are several kinds, that we want to explore in this exercise.
+We already know how to write functions that can transform our data in memory. But what if a representation of our status is more complicated than just a number?
+
+A window, for example, needs a width and a height to be stored alongside each other.
+Data types that define the structure of that are what we call \textit{non-trivial types}.
+These types are not limited to numbers, and we will explore several possible non-trivial types in this exercise.
 \begin{enumerate}
     \item structs
     \item pointers
@@ -25,6 +27,7 @@ There are several kinds, that we want to explore in this exercise.
 \begin{aufgabe}
     Let's start with a struct. 
     A struct is a collection of fields, addressable by a common identifier.
+    
     Say your program want's to handle the data of two different persons. 
     How would you save the data in memory?
     One way could be the following:
@@ -36,9 +39,10 @@ There are several kinds, that we want to explore in this exercise.
         int height_person_1 = 180;
         int height_person_2 = 170;
     \end{lstlisting}
-    But this is not very readable, and furthermore, it is not very easy, to pass a whole person as an argument to a function.
+    But this is not very readable and quite error-prone to missing something. Furthermore, it is not very easy to pass an entire person as an argument to a function.
+    
     A better way to implement this are structs. 
-    First we need to define a struct so that the compiler knows what it should be dealing with:
+    First, we need to define a struct so that the compiler knows what information that struct holds:
     \begin{lstlisting}
         struct Person_t {
             int age;
@@ -46,21 +50,23 @@ There are several kinds, that we want to explore in this exercise.
             int height;
         };
     \end{lstlisting}
-    We can now change our code to this:
+    We use the \texttt{\_t} suffix to indicate that this is a user-defined type.
+    Let's refactor our code from before:
     \begin{lstlisting}
         struct Person_t person_1 = {20, 70, 180};
         struct Person_t person_2 = {30, 80, 170};
     \end{lstlisting}
-    We use the \texttt{\_t} suffix to indicate that this is a user-defined type.
-    But there are even more things we can do to make it more readable. 
+    
+    But there are even more things we could do to make the code more readable. 
     \begin{lstlisting}
         typedef struct Person_t P_t;
         P_t person_1 = {20, 70, 180};
         P_t person_2 = {30, 80, 170};
     \end{lstlisting}
     This typedef syntax makes it easier to read the code, since we can neglect the \texttt{struct}-keyword in our code.
-    A typedef is also called an \textit{alias}.
-    But there is one more improvement that we can do to make our code more readable:
+    A typedef is also called an \textit{alias}. Here \texttt{P\_t} was defined as an alias for \texttt{struct Person\_t}.
+    
+    But there is another improvement that we can do to make our code more readable:
     \begin{lstlisting}
         typedef struct{
             int age;
@@ -78,8 +84,8 @@ There are several kinds, that we want to explore in this exercise.
             .height = 170
         };
     \end{lstlisting}
-    Now this looks nice. 
-    We can access the fields with dot-notation.
+    Now this looks really readable, and every programmer can understand what this code does. 
+    We can access the fields using dot-notation.
     \begin{lstlisting}
         printf("%d", person_1.age); 
     \end{lstlisting}
@@ -96,13 +102,16 @@ There are several kinds, that we want to explore in this exercise.
         }
     \end{lstlisting}
     This makes handling data a lot easier, since we can keep data together in one place and pass it around by only referencing the struct, rather than each field separately.
+    
     Implement a struct, that encodes the information of a car!    
 \end{aufgabe}
 
 \begin{aufgabe}
-    Next topic we want to talk about is the pointer data type. 
-    A pointer is essentially a type that stores the memory address of another piece of data.
-    This might seem abstract at first, but pointers are a powerful feature of the C language, allowing for efficient and dynamic memory management.
+    The next data type that we want to talk about are pointers.
+    A pointer is essentially a type that stores the memory address of another piece of data. 
+    (What size does a pointer have? It depends on your architecture: For 32-Bit architectures, each address has 32 bit - hence the pointer needs that much space. For 64-Bit architectures, this changes to 64 bit)
+    
+    This might seem abstract at first, but pointers are a powerful feature of the C language, allowing for efficient and dynamic memory management. 
     Consider you want to modify the value of a variable inside a function:
 \begin{lstlisting}
     void add_ten(int n) {
@@ -118,8 +127,7 @@ By passing a pointer to the variable, you can directly modify the variable's val
     }
 \end{lstlisting}
 In this version, \texttt{n} is a pointer to an integer, and \texttt{*n} accesses the value of the variable it points to, allowing us to modify the original variable.
-You have to understand, that pointer, is not a complete type in and of itself. 
-It only is in connection with the type of data it points to.
+It's important to recognize that a pointer, on its own, does not constitute a complete type. Its definition is only complete when it is associated with the type of data it references.
 This is why we call it a \textit{pointer to int} or \textit{pointer to float}, or whatever it is pointing to.
 
 To use this function, you would pass the address of a variable to it, like so:
@@ -130,8 +138,8 @@ To use this function, you would pass the address of a variable to it, like so:
         printf("%d", age); // Outputs: 30
     }
 \end{lstlisting}
-The \texttt{\&} operator gets the address of \texttt{age}, and \texttt{add\_ten} modifies the value at that address. 
-The original \texttt{age} variable in \texttt{main} is now 30.
+The \texttt{\&} operator gets the address of \texttt{age}, and the function \texttt{add\_ten} modifies the value at that address. 
+The value of the \texttt{age} variable in \texttt{main} is now 30.
 
 Pointers are not limited to primitive data types. They can also point to structures, enabling the manipulation of complex data structures:
 \begin{lstlisting}
@@ -141,11 +149,11 @@ Pointers are not limited to primitive data types. They can also point to structu
     } Point_t;
 
     void move_point(Point *p, int dx, int dy) {
-        p->x += dx;
-        p->y += dy;
+        p -> x += dx;
+        p -> y += dy;
     }
 \end{lstlisting}
-In this example, \texttt{p} is a pointer to a \texttt{Point} structure, and \texttt{p->x} is the syntax used to access the \texttt{x} field of the structure \texttt{p} points to. This function modifies the position of a point.
+In this example, \texttt{p} is a pointer to a \texttt{Point} structure, and \texttt{p → x} is the syntax used to access the \texttt{x} field of the structure \texttt{p} points to. This function modifies the position of a point.
 
 Pointers are a fundamental aspect of C, enabling direct memory access and manipulation, which is critical for system programming, efficient data structures, and interfacing with hardware.
 
@@ -161,12 +169,12 @@ Take a look at the following example before proceeding: \href{https://godbolt.or
 \begin{lstlisting}
     int numbers[3] = {10, 20, 30};
 \end{lstlisting}
-The name `numbers` points to the first element of the array, meaning `numbers` is equivalent to `\&numbers[0]`. You can verify this by comparing their addresses:
+The name \emph{numbers} points to the first element of the array, meaning \emph{numbers} is equivalent to \emph{\&numbers[0]}. You can verify this by comparing their addresses:
 \begin{lstlisting}
     printf("Address of numbers: %p\n", (void *)numbers);
     printf("Address of &numbers[0]: %p\n", (void *)&numbers[0]);
 \end{lstlisting}
-You'll notice that both addresses are the same. This illustrates how array names can be thought of as pointers.
+You'll notice that both addresses are the same, so they refer to the same memory on your computer and will always reference the same value. This illustrates how array names can be thought of as pointers.
 
 Accessing array elements using pointers is straightforward. You can access the first element of the array `numbers` by dereferencing the pointer:
 \begin{lstlisting}
@@ -192,8 +200,5 @@ Find out, how to pass the address of the member-value to the function.
 \end{aufgabe}
 
 \section*{Anmerkungen}
-\begin{enumerate}
-    \item Link zu einem YouTube-Video: \url{https://www.youtube.com}
-\end{enumerate}
 
 \end{document}
